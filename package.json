@@ -1,0 +1,12 @@
+{
+	"name": "siga-helper",
+	"fullName": "Siga Helper",
+	"title": "Siga Helper",
+	"id": "extensionsigahelper@extension.com",
+	"description": "Extension para mostrar mas items en el siga de FRBA UTN como por ejemplo el promedio de finales.",
+	"author": "Pablo Matías Gomez",
+	"version": "1.1",
+	"license": "MPL 2.0",
+	"icon": "icons/icon48.png",
+	"icon64": "icons/icon48.png"
+}
