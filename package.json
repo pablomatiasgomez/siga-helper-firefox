@@ -1,12 +1,15 @@
 {
-	"name": "siga-helper",
-	"fullName": "Siga Helper",
-	"title": "Siga Helper",
-	"id": "extensionsigahelper@extension.com",
-	"description": "Extension para mostrar mas items en el siga de FRBA UTN como por ejemplo el promedio de finales.",
-	"author": "Pablo Matías Gomez",
-	"version": "1.3.3",
-	"license": "MPL 2.0",
-	"icon": "icons/icon48.png",
-	"icon64": "icons/icon48.png"
+  "title": "Siga Helper",
+  "name": "siga-helper",
+  "version": "1.6.0",
+  "description": "Extensión para mostrar mas items en el siga de FRBA UTN como por ejemplo el promedio de finales, el peso academico, etc",
+  "main": "index.js",
+  "author": "Pablo Matias Gomez",
+  "engines": {
+    "firefox": ">=38.0a1"
+  },
+  "license": "MPL 2.0",
+  "keywords": [
+    "jetpack"
+  ]
 }

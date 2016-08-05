@@ -5,6 +5,15 @@ var ActasDeFinalesPage = function(utils) {
 	var aprobados = [];
 	var desaprobados = [];
 
+	var pesoAcademico;
+	var avgAprobados;
+	var avgDesaprobados;
+
+	var $helperTable = $("<div style='display:inline-block;'><table><tbody></tbody></table><span class='powered-by-siga-helper'></span></div>");
+
+	var $aprobadosTable = $(".std-canvas table:first");
+	var $desaprobadosTable = $(".std-canvas table").length > 1 ? $(".std-canvas table:last") : $();
+
 	// .. avgs
 	var addNoteToArray = function($tr, arr) {
 		var note = $tr.find("td:last").text();
@@ -20,17 +29,40 @@ var ActasDeFinalesPage = function(utils) {
 		});
 		return Math.round(sum / arr.length * 100) / 100;
 	};
-	// .. 
+
+	var setAvgs = function() {
+		$aprobadosTable.find("tbody tr").each(function() {
+			addNoteToArray($(this), aprobados);
+		});
+
+		$desaprobadosTable.find("tbody tr").each(function() {
+			addNoteToArray($(this), desaprobados);
+		});
+
+		avgDesaprobados = getAvgFromArray(aprobados.concat(desaprobados));
+		avgAprobados = getAvgFromArray(aprobados);
+
+		var appendTableRow = function(description, value) {
+			$helperTable.find("tbody").append("<tr><td>" + description + "</td><td><b>" + value + "</b></td></tr>");
+		};
+
+		appendTableRow("Cantidad de materias aprobadas", aprobados.length);
+		appendTableRow("Cantidad de materias desaprobadas", desaprobados.length);
+		appendTableRow("Promedio con desaprobados", avgDesaprobados);
+		appendTableRow("Promedio sin desaprobados", avgAprobados);
+	};
+	// ..
 
 	// .. Peso academico
 	var setPesoAcademico = function(startYear) {
 		var yearsCount = (new Date().getFullYear() - startYear + 1);
-		var pesoAcademico = 11 * aprobados.length - 5 * yearsCount - 3 * desaprobados.length;
+		pesoAcademico = 11 * aprobados.length - 5 * yearsCount - 3 * desaprobados.length;
 
-		$(".std-canvas p.peso-academico").remove();
-		$(".std-canvas p:first").after("<p class='peso-academico'>Peso academico: <b>" + pesoAcademico + "</b> <small>(11*" + aprobados.length + " - 5*" + yearsCount + " - 3*" + desaprobados.length + ")</small> <a class='helper change-year'>Cambiar año de ingreso</a><input class='year-change' type='text' value='" + startYear + "'/></p>");
+		$helperTable.find(".peso-academico").remove();
+		$helperTable.find("tbody").prepend("<tr class='peso-academico'><td>Peso academico</td><td> <b>" + pesoAcademico + "</b> <small>(11*" + aprobados.length + " - 5*" + yearsCount + " - 3*" + desaprobados.length + ")</small> <a class='helper change-year'>Cambiar año de ingreso</a><input class='year-change' type='text' value='" + startYear + "'/></td></tr>");
 		bindChangeYear();
 	};
+
 
 	var bindChangeYear = function() {
 		$(".std-canvas .change-year").on("click", function() {
@@ -52,22 +84,26 @@ var ActasDeFinalesPage = function(utils) {
 	};
 	// ..
 
+	var postData = function() {
+		var timer = setInterval(function() {
+			if (avgAprobados && avgDesaprobados && pesoAcademico) {
+				clearInterval(timer);
+				utils.postData(avgAprobados, avgDesaprobados, pesoAcademico);
+			}
+		}, 1000);
+	};
+
+	var appendTable = function() {
+		$(".std-canvas p:first").after($helperTable);
+	};
 
 	// Init
 	(function() {
-		$(".std-canvas table:first tbody tr").each(function() {
-			addNoteToArray($(this), aprobados);
-		});
-
-		if ($(".std-canvas table").length > 1) {
-			$(".std-canvas table:last tbody tr").each(function() {
-				addNoteToArray($(this), desaprobados);
-			});
-		}
-
-		$(".std-canvas p:first").after("<p>Promedio con desaprobados: <b>" + getAvgFromArray(aprobados.concat(desaprobados)) + "</b></p>");
-		$(".std-canvas p:first").after("<p>Promedio sin desaprobados: <b>" + getAvgFromArray(aprobados) + "</b></p>");
+		appendTable();
+		setAvgs();
 		utils.getStartYear(setPesoAcademico);
+
+		postData();
 	})();
 	
 

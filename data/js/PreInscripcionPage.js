@@ -30,24 +30,20 @@ var PreInscripcionPage = function(utils) {
 						if (strArray.length) {
 							var str = strArray[0].replace("CAMPUS", "").replace("MEDRANO", ""); // This is not necessary, but just in case.
 
-							$.each(str.split(" "), function() {
-								var schedule = utils.parseScheduleString(this);
+							utils.getSchedulesFromString(str).forEach(function(schedule) {
+								var firstHour = parseInt(schedule.firstHour) + (getTurnIndex(schedule.turn) * 7);
+								var lastHour = parseInt(schedule.lastHour) + (getTurnIndex(schedule.turn) * 7);
 
-								if (schedule) {
-									var firstHour = parseInt(schedule.firstHour) + (getTurnIndex(schedule.turn) * 7);
-									var lastHour = parseInt(schedule.lastHour) + (getTurnIndex(schedule.turn) * 7);
+								if (!hoursUsed[alternateIndex]) {
+									hoursUsed[alternateIndex] = {};
+								}
 
-									if (!hoursUsed[alternateIndex]) {
-										hoursUsed[alternateIndex] = {};
-									}
+								if (!hoursUsed[alternateIndex][schedule.day]) {
+									hoursUsed[alternateIndex][schedule.day] = {};
+								}
 
-									if (!hoursUsed[alternateIndex][schedule.day]) {
-										hoursUsed[alternateIndex][schedule.day] = {};
-									}
-
-									for (var i = firstHour; i<= lastHour; i++) {
-										hoursUsed[alternateIndex][schedule.day][i] = subjectCode;
-									}
+								for (var i = firstHour; i <= lastHour; i++) {
+									hoursUsed[alternateIndex][schedule.day][i] = subjectCode;
 								}
 							});
 						}
@@ -59,48 +55,45 @@ var PreInscripcionPage = function(utils) {
 		return hoursUsed;
 	};
 
-	var setTable = function(hoursUsed) {
-		var $divContainer = $("<div>");
+	var setPreviewTable = function(hoursUsed) {
+		var $divContainer = $("<div style='display: inline-block;'>");
 
 		for (var alternateIndex in hoursUsed) {
-			if (hoursUsed.hasOwnProperty(alternateIndex)) {
-				var $table = $("<table>");
-				var $tbody = $("<tbody>");
+			var $table = $("<table>");
+			var $tbody = $("<tbody>");
 
-				$table.append($tbody);
-				$tbody.append('<tr><th></th><th colspan="7">Mañana</th><th colspan="7">Tarde</th><th colspan="7">Noche</th></tr>');
+			$table.append($tbody);
+			$tbody.append('<tr><th></th><th colspan="7">Mañana</th><th colspan="7">Tarde</th><th colspan="7">Noche</th></tr>');
 
-				for (var day in utils.days) {
-					if (utils.days.hasOwnProperty(day)) {
-						var $tr = $("<tr>");
-						$tr.append($("<td>", { html: utils.days[day] }));
+			for (var day in utils.days) {
+				var $tr = $("<tr>");
+				$tr.append($("<td>", { html: utils.days[day] }));
 
-						for (var i = 0; i <= 19; i++) {
-							var subjectCode = hoursUsed[alternateIndex][day] ? hoursUsed[alternateIndex][day][i] : "";
-							if (subjectCode) {
-								subjectCode = "#" + subjectCode.split("").reverse().join("");
-							} else {
-								subjectCode = "transparent";
-							}
-							$tr.append($("<td>", { style: "background-color:" + subjectCode, html: "&nbsp;" }));
-						}
-						$tbody.append($tr);
+				for (var i = 0; i <= 19; i++) {
+					var subjectCode = hoursUsed[alternateIndex][day] ? hoursUsed[alternateIndex][day][i] : "";
+					if (subjectCode) {
+						subjectCode = "#" + subjectCode.split("").reverse().join("");
+					} else {
+						subjectCode = "transparent";
 					}
+					$tr.append($("<td>", { style: "background-color:" + subjectCode, html: "&nbsp;" }));
 				}
-
-				var $p = $("<p>", { html: "Preview de cursada (Alt " + (parseInt(alternateIndex) + 1) + ")" });
-				var $divTable = $("<div>").append($table);
-				$divContainer.append($p);
-				$divContainer.append($divTable);
+				$tbody.append($tr);
 			}
+
+			var $p = $("<p>", { html: "Preview de cursada (Alt " + (parseInt(alternateIndex) + 1) + ")" });
+			var $divTable = $("<div>").append($table);
+			$divContainer.append($p);
+			$divContainer.append($divTable);
+			$divContainer.append("<span class='powered-by-siga-helper'></span>");
 		}
-		$(".std-canvas table:last").parent().after($divContainer.children());
+		$(".std-canvas table:last").parent().after($divContainer);
 	};
 
 	(function() {
 		if ($(".std-canvas table").length > 2) {
 			var hoursUsed = getAllHoursUsed($(".std-canvas table:last"));
-			setTable(hoursUsed);
+			setPreviewTable(hoursUsed);
 		}
 	})();
 

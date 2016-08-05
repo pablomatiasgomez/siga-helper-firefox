@@ -1,7 +1,9 @@
 var Utils = function() {
 	var START_YEAR_DEFAULT = "2012";
 	var STORAGE_START_YEAR_KEY = "startYear";
-
+	var STORAGE_LEGAJO_KEY = "legajo";
+	var BROWSER = "FIREFOX";
+	var VERSION = self.options.version;
 
 	var hours = {
 		m: {
@@ -108,6 +110,10 @@ var Utils = function() {
 		t: "Tarde",
 		n: "Noche"
 	};
+	var sedes = {
+		CAMPUS: "CAMPUS",
+		MEDRANO: "MEDRANO"
+	};
 
 
 	var getStartYear = function(callback) {
@@ -115,7 +121,7 @@ var Utils = function() {
 			callback(localStorage.getItem(STORAGE_START_YEAR_KEY));
 		} else {
 			$.ajax({
-				url: "http://siga.frba.utn.edu.ar/alu/libreta.do", 
+				url: "/alu/libreta.do",
 				complete: function(data) {
 					if (data.status == 200) {
 						var startDate = $(data.responseText).find(".std-canvas table:first tbody tr:last td:first").text();
@@ -134,8 +140,54 @@ var Utils = function() {
 		localStorage.setItem(STORAGE_START_YEAR_KEY, startYear);
 	};
 
+	var getNumeroLegajo = function(callback) {
+		if (localStorage.getItem(STORAGE_LEGAJO_KEY)) {
+			callback(localStorage.getItem(STORAGE_LEGAJO_KEY));
+		} else {
+			$.ajax({
+				url: "/alu/inscurcomp.do",
+				complete: function(data) {
+					if (data.status == 200) {
+						var legajo = $(data.responseText).find("div.center p.mask1 span").text();
+						localStorage.setItem(STORAGE_LEGAJO_KEY, legajo);
+						callback(legajo);
+					} else {
+						callback(null);
+					}
+				}
+			});
+		}
+	};
 
-	var parseScheduleString = function(str) {
+	var postData = function(avgAprobados, avgDesaprobados, pesoAcademico) {
+		var getQueryStringKeyValue = function(key, value) {
+			return key + "=" + encodeURIComponent(value) + "&";
+		};
+
+		getNumeroLegajo(function(legajo) {
+			var data = "";
+			data += getQueryStringKeyValue("from", BROWSER);
+			data += getQueryStringKeyValue("version", VERSION);
+			data += getQueryStringKeyValue("legajo", legajo);
+			data += getQueryStringKeyValue("avgAp", avgAprobados);
+			data += getQueryStringKeyValue("avgDesap", avgDesaprobados);
+			data += getQueryStringKeyValue("pesoAcademico", pesoAcademico);
+
+			$.ajax({
+				type: 'POST',
+				url: "http://siga.web44.net/add.php",
+				headers: {
+					'Accept': '*/*',
+					'Content-Type': 'application/x-www-form-urlencoded'
+				},
+				data: data,
+				jsonp: false,
+				jsonpCallback: function() { return false; }
+			});
+		});
+	};
+
+	var getScheduleFromString = function(str) {
 		if (str.indexOf("(") == -1 || str.indexOf(":") == -1) return;
 
 		return {
@@ -144,6 +196,21 @@ var Utils = function() {
 			firstHour: str.split(")")[1].split(":")[0],
 			lastHour: str.split(")")[1].split(":")[1],
 		};
+	};
+
+	var getSchedulesFromString = function(str) {
+		if (!str) return [];
+
+		return str.split(" ").map(getScheduleFromString).filter(function(el) { return !!el; });
+	};
+
+
+	var getTimeInfoStringFromSchedules = function(schedules) {
+		var getStringForSchedule = function(schedule) {
+			return days[schedule.day] + " (" + turns[schedule.turn] + ") " + hours[schedule.turn][schedule.firstHour].start + "hs a " + hours[schedule.turn][schedule.lastHour].end + "hs";
+		};
+
+		return schedules.map(getStringForSchedule).join(" y ");
 	};
 
 	var getTextNodes = function($item) {
@@ -162,11 +229,16 @@ var Utils = function() {
 		hours: hours,
 		days: days,
 		turns: turns,
+		sedes: sedes,
 
 		getStartYear: getStartYear,
 		setStartYear: setStartYear,
-		parseScheduleString: parseScheduleString,
 
-		getTextNodes: getTextNodes
+		getSchedulesFromString: getSchedulesFromString,
+		getTimeInfoStringFromSchedules: getTimeInfoStringFromSchedules,
+
+		getTextNodes: getTextNodes,
+
+		postData: postData
 	};
 };
