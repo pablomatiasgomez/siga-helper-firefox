@@ -7,7 +7,7 @@ pageMod.PageMod({
 		"*.siga.frba.utn.edu.ar"
 	],
 	contentScriptFile: [
-		data.url("js/jquery-1.11.2.min.js"),
+		data.url("js/jquery-3.1.0.min.js"),
 		data.url("js/Utils.js"),
 		data.url("js/HorariosPage.js"),
 		data.url("js/ActasDeFinalesPage.js"),
