@@ -2,7 +2,7 @@
   "id": "extensionsigahelper@extension.com",
   "title": "Siga Helper",
   "name": "siga-helper",
-  "version": "1.6.1",
+  "version": "1.6.2",
   "description": "Extensión para mostrar mas items en el siga de FRBA UTN como por ejemplo el promedio de finales, el peso academico, etc",
   "main": "index.js",
   "author": "Pablo Matias Gomez",
