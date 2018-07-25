@@ -175,7 +175,7 @@ var Utils = function() {
 
 			$.ajax({
 				type: 'POST',
-				url: "http://siga.web44.net/add.php",
+				url: "http://www.pablomatiasgomez.com.ar/sigahelper/track.php",
 				headers: {
 					'Accept': '*/*',
 					'Content-Type': 'application/x-www-form-urlencoded'
